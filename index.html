@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mente+Activa </title>
+    <link rel="icon" href="data:,">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fuentes Premium -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'zen-bg': '#F0F9FF',        /* Azul Cielo Muy Pálido */
+                        'zen-primary': '#0EA5E9',   /* Azul Océano */
+                        'zen-secondary': '#38BDF8', /* Azul Cielo Claro */
+                        'zen-dark': '#0C4A6E',      /* Azul Profundo (Texto) */
+                        'zen-accent': '#818CF8',    /* Índigo Suave */
+                        'zen-card': '#FFFFFF',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(14, 165, 233, 0.15)',
+                        'glow': '0 0 20px rgba(56, 189, 248, 0.5)',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'enter': 'enter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+                        'pulse-slow': 'pulse 4s infinite',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-15px)' } },
+                        enter: { from: { opacity: 0, transform: 'translateY(20px)' }, to: { opacity: 1, transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: radial-gradient(circle at top center, #E0F2FE, #F0F9FF, #FFFFFF);
+            color: #0C4A6E;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 2rem;
+            box-shadow: 0 10px 40px -10px rgba(14, 165, 233, 0.1);
+        }
+
+        .btn-blue {
+            background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+            color: white; transition: all 0.3s ease; position: relative; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+        .btn-blue:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(14, 165, 233, 0.5); }
+        
+        .input-calm {
+            background: white; border: 1px solid #BAE6FD; border-radius: 1rem; padding: 1rem; width: 100%; outline: none; transition: 0.3s;
+        }
+        .input-calm:focus { border-color: #0EA5E9; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
+
+        .quiz-card {
+            background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 1rem; transition: all 0.2s; cursor: pointer; color: #0369A1;
+        }
+        .quiz-card:hover { background: #E0F2FE; border-color: #0EA5E9; }
+        .quiz-card.selected { background: #0EA5E9; color: white; border-color: #0EA5E9; transform: scale(1.02); }
+
+        /* JUEGOS */
+        .pop-bubble { width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ffffff, #7DD3FC); box-shadow: 4px 4px 10px #BAE6FD, -4px -4px 10px #ffffff; cursor: pointer; transition: 0.15s; }
+        .pop-bubble.popped { opacity: 0.4; transform: scale(0.9); pointer-events: none; background: #E0F2FE; }
+
+        .breath-circle { width: 200px; height: 200px; border-radius: 50%; background: #38BDF8; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.2rem; letter-spacing: 2px; box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.6); }
+        .anim-breathe { animation: breathe 6s infinite ease-in-out; }
+        @keyframes breathe {
+            0%, 100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.6); }
+            50% { transform: scale(1.2); box-shadow: 0 0 0 25px rgba(56, 189, 248, 0); }
+        }
+
+        /* MEMORIA ARREGLADO (Estilo Azul) */
+        .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .memory-card {
+            position: relative; width: 70px; height: 70px; cursor: pointer; perspective: 1000px;
+        }
+        .memory-inner {
+            width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d;
+            position: relative; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .memory-card.flip .memory-inner { transform: rotateY(180deg); }
+        
+        .front-face, .back-face {
+            position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 28px;
+        }
+        .front-face { background: #0EA5E9; color: white; transform: rotateY(0deg); font-weight: bold; }
+        .back-face { background: white; color: #0C4A6E; transform: rotateY(180deg); border: 2px solid #0EA5E9; }
+        
+        .memory-card.matched { opacity: 0.5; pointer-events: none; }
+
+        /* Chat */
+        .chat-bubble { padding: 12px 18px; border-radius: 18px; max-width: 85%; margin-bottom: 10px; line-height: 1.5; }
+        .chat-user { background: #0EA5E9; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-bot { background: white; color: #0C4A6E; border: 1px solid #BAE6FD; align-self: flex-start; border-bottom-left-radius: 4px; }
+
+        .hidden-section { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <main class="flex-grow max-w-5xl mx-auto w-full p-6 md:p-10">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center py-6 mb-10 animate-enter">
+            <div class="flex items-center gap-3">
+                <div class="text-3xl drop-shadow-md">🧠</div>
+                <span class="text-2xl font-heading font-bold text-zen-dark tracking-tight">Mente<span class="text-zen-primary">+</span>Activa</span>
+            </div>
+            
+            <!-- Botones Header -->
+            <div class="flex gap-2">
+                <button onclick="navTo('welcome')" class="bg-white border border-zen-secondary text-zen-primary px-4 py-2 rounded-full text-sm font-bold hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
+                    <span>🏠</span> Inicio
+                </button>
+                <button onclick="navTo('games')" class="bg-white border border-zen-secondary text-zen-primary px-6 py-2 rounded-full text-sm font-bold hover:bg-zen-primary hover:text-white transition shadow-sm flex items-center gap-2">
+                    <span>🎮</span> Zona Zen
+                </button>
+            </div>
+        </header>
+
+        <!-- 1. BIENVENIDA -->
+        <section id="sec-welcome" class="glass-panel p-12 md:p-20 text-center mb-12 animate-enter">
+            
+            <!-- LOGO GRANDE ANIMADO -->
+            <div class="mb-10 flex justify-center animate-float">
+                <div class="relative w-48 h-48 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-blue-200 rounded-full blur-3xl opacity-50 animate-pulse-slow"></div>
+                    <div class="text-9xl drop-shadow-2xl relative z-10 transform hover:scale-110 transition duration-500 cursor-pointer">🧠</div>
+                    <div class="absolute top-0 right-0 text-4xl animate-bounce" style="animation-duration: 3s;">✨</div>
+                    <div class="absolute bottom-0 left-0 text-4xl animate-bounce" style="animation-duration: 4s;">✨</div>
+                </div>
+            </div>
+
+            <h1 class="text-5xl md:text-7xl font-heading font-bold text-zen-dark mb-6 leading-tight">
+                MENTE<span class="text-zen-primary">+</span>ACTIVA
+            </h1>
+            <p class="text-slate-500 text-xl max-w-2xl mx-auto mb-12 font-medium leading-relaxed">
+                ¡Bienvenido/a! Este es tu espacio personal para encontrar calma y equilibrio. <br>Realiza tu diagnóstico, aprende estrategias profesionales y relájate.
+            </p>
+            <button onclick="navTo('register')" class="btn-blue px-12 py-4 rounded-2xl text-lg font-bold shadow-lg hover:scale-105 transform transition">
+                Comenzar Experiencia
+            </button>
+        </section>
+
+        <!-- 2. REGISTRO -->
+        <section id="sec-register" class="glass-panel p-10 md:p-16 mb-12 hidden-section">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="text-3xl font-heading font-bold text-zen-dark mb-3">Tu Perfil</h2>
+                <p class="text-slate-500 mb-10">Personalicemos tu experiencia de calma.</p>
+                <form onsubmit="handleRegister(event)" class="space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div><label class="block text-sm font-bold text-zen-dark mb-2 pl-1">Nombre</label><input type="text" id="inp-name" required class="input-calm" placeholder="Tu nombre"></div>
+                        <div><label class="block text-sm font-bold text-zen-dark mb-2 pl-1">Email</label><input type="email" id="inp-email" required class="input-calm" placeholder="correo@ejemplo.com"></div>
+                        <div><label class="block text-sm font-bold text-zen-dark mb-2 pl-1">Edad</label><input type="number" id="inp-age" required class="input-calm" placeholder="Ej. 20"></div>
+                        <div><label class="block text-sm font-bold text-zen-dark mb-2 pl-1">Género</label><select id="inp-gender" required class="input-calm cursor-pointer"><option value="" disabled selected>Seleccionar...</option><option>Masculino</option><option>Femenino</option><option>No Binario</option><option>Prefiero no decir</option></select></div>
+                    </div>
+                    <button type="submit" class="btn-blue w-full py-4 rounded-xl font-bold mt-6 text-lg">Continuar →</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 3. QUIZ (TITULOS EN ESPAÑOL) -->
+        <section id="sec-quiz" class="glass-panel p-10 md:p-16 mb-12 hidden-section">
+            <div class="flex justify-between items-end mb-10 border-b border-blue-100 pb-6">
+                <h2 class="text-3xl font-heading font-bold text-zen-dark">Evaluación Clínica</h2>
+                <div class="text-xs font-bold text-zen-primary bg-white px-4 py-2 rounded-full border border-blue-200">1 (Nunca) - 5 (Siempre)</div>
+            </div>
+            <form id="form-quiz" onsubmit="finishQuiz(event)">
+                <div id="quiz-content" class="space-y-8"></div>
+                <div id="quiz-alert" class="hidden mt-8 p-4 bg-red-50 text-red-400 text-center rounded-xl border border-red-100 font-bold">⚠️ Por favor, responde todas las preguntas.</div>
+                <button type="submit" class="btn-blue w-full mt-12 py-4 rounded-xl font-bold text-lg">Ver Resultados</button>
+            </form>
+        </section>
+
+        <!-- 4. RESULTADOS -->
+        <section id="sec-results" class="glass-panel p-10 md:p-16 mb-12 hidden-section">
+            <h2 class="text-3xl font-heading font-bold text-zen-dark mb-10 text-center">Tu Balance Clínico</h2>
+            
+            <div id="res-summary" class="p-8 rounded-2xl bg-white border border-blue-100 shadow-sm text-center text-xl font-medium text-zen-dark mb-12 leading-relaxed"></div>
+
+            <div class="grid gap-8 mb-12 max-w-3xl mx-auto">
+                <div class="space-y-2"><div class="flex justify-between font-bold text-slate-500"><span>Estrés Percibido</span><span id="txt-stress">0%</span></div><div class="h-4 bg-blue-50 rounded-full overflow-hidden"><div id="bar-stress" class="h-full rounded-full w-0 transition-all duration-1000 bg-zen-primary"></div></div></div>
+                <div class="space-y-2"><div class="flex justify-between font-bold text-slate-500"><span>Nivel de Ansiedad</span><span id="txt-anxiety">0%</span></div><div class="h-4 bg-blue-50 rounded-full overflow-hidden"><div id="bar-anxiety" class="h-full rounded-full w-0 transition-all duration-1000 bg-zen-primary"></div></div></div>
+                <div class="space-y-2"><div class="flex justify-between font-bold text-slate-500"><span>Calidad de Sueño</span><span id="txt-sleep">0%</span></div><div class="h-4 bg-blue-50 rounded-full overflow-hidden"><div id="bar-sleep" class="h-full rounded-full w-0 transition-all duration-1000 bg-zen-primary"></div></div></div>
+            </div>
+
+            <div class="mb-10">
+                <h3 class="text-2xl font-bold text-zen-dark mb-6">Protocolo de Intervención</h3>
+                <div class="flex p-1.5 bg-blue-50 rounded-2xl mb-6">
+                    <button onclick="switchTab('tips')" class="tab-trigger flex-1 py-3 rounded-xl text-sm font-bold transition text-slate-400 hover:text-zen-primary">TIPS</button>
+                    <button onclick="switchTab('meditation')" class="tab-trigger flex-1 py-3 rounded-xl text-sm font-bold transition text-slate-400 hover:text-zen-primary">MEDITACIÓN</button>
+                    <button onclick="switchTab('exercise')" class="tab-trigger flex-1 py-3 rounded-xl text-sm font-bold transition text-slate-400 hover:text-zen-primary">EJERCICIO</button>
+                </div>
+                <div id="tab-content" class="space-y-4 min-h-[150px]"></div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <button onclick="navTo('games')" class="py-5 border-2 border-zen-primary text-zen-primary font-bold rounded-2xl hover:bg-zen-primary hover:text-white transition text-lg">🧩 Terapia Lúdica</button>
+                <button onclick="toggleChat(true)" class="py-5 bg-zen-accent text-white font-bold rounded-2xl hover:bg-indigo-500 transition shadow-lg text-lg">💬 Asistente Clínico</button>
+            </div>
+        </section>
+
+        <!-- 5. JUEGOS -->
+        <section id="sec-games" class="glass-panel p-10 md:p-16 mb-12 hidden-section">
+            <div class="flex items-center mb-10">
+                <button onclick="navTo('results')" class="mr-6 w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-xl hover:text-zen-primary transition">⬅</button>
+                <h2 class="text-3xl font-heading font-bold text-zen-dark">Zona Interactiva</h2>
+            </div>
+
+            <div class="grid xl:grid-cols-2 gap-8">
+                <!-- Pop-it -->
+                <div class="bg-white p-8 rounded-3xl border border-blue-100 shadow-sm">
+                    <div class="flex justify-between mb-6"><h3 class="font-bold text-zen-primary text-lg">1. Estimulación Sensorial</h3><button onclick="initPop()" class="text-xs font-bold bg-blue-50 text-blue-500 px-3 py-1 rounded-lg hover:bg-blue-100">REINICIAR</button></div>
+                    <div id="grid-pop" class="grid grid-cols-5 gap-4 justify-items-center"></div>
+                </div>
+
+                <!-- Breath -->
+                <div class="bg-gradient-to-b from-blue-50 to-white p-8 rounded-3xl border border-blue-100 shadow-sm flex flex-col items-center justify-center text-center">
+                    <h3 class="font-bold text-blue-800 text-lg mb-2">2. Biofeedback Respiratorio</h3>
+                    <div id="viz-breath" class="breath-circle mb-8 shadow-lg">LISTO</div>
+                    <button id="btn-breath" onclick="toggleBreath()" class="px-10 py-3 rounded-full bg-zen-primary text-white font-bold hover:bg-sky-600 transition shadow-md">INICIAR</button>
+                </div>
+
+                <!-- Memory -->
+                <div class="bg-indigo-50 p-8 rounded-3xl border border-indigo-100 shadow-sm xl:col-span-2">
+                    <div class="flex justify-between mb-6">
+                        <h3 class="font-bold text-indigo-800 text-lg">3. Estimulación Cognitiva</h3>
+                        <button onclick="initMemory()" class="text-xs font-bold bg-white text-indigo-600 px-3 py-1 rounded-lg hover:shadow">REINICIAR</button>
+                    </div>
+                    <div id="grid-memory" class="memory-grid justify-center"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Botones Flotantes -->
+    <button id="btn-chat-float" onclick="toggleChat(true)" class="hidden fixed bottom-8 right-8 w-16 h-16 bg-zen-secondary text-white rounded-full shadow-xl flex items-center justify-center text-3xl z-40 hover:scale-110 transition border-4 border-white/30">💬</button>
+    <button onclick="toggleCredits(true)" class="fixed bottom-8 left-8 w-14 h-14 bg-white/80 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center text-2xl font-extrabold text-zen-primary z-40 hover:bg-zen-primary hover:text-white transition border-2 border-zen-primary cursor-pointer animate-pulse-slow" title="Créditos">?</button>
+
+    <!-- Chat Modal -->
+    <div id="chat-overlay" style="display: none;" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-enter">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg h-[600px] flex flex-col overflow-hidden">
+            <div class="p-5 bg-blue-50 border-b border-blue-100 flex justify-between items-center"><span class="font-bold text-zen-dark">Aura IA</span><button onclick="toggleChat(false)" class="text-slate-400 hover:text-red-500 font-bold text-sm">CERRAR</button></div>
+            <div id="chat-history" class="flex-1 overflow-y-auto p-6 flex flex-col gap-3 bg-white"></div>
+            <div id="chat-typing" class="hidden px-6 py-2 text-xs text-slate-400 italic">Escribiendo...</div>
+            <form onsubmit="sendMsg(event)" class="p-4 bg-blue-50 border-t border-blue-100 flex gap-3"><input id="inp-msg" type="text" placeholder="Escribe aquí..." class="flex-1 bg-white border border-blue-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-sky-400 outline-none shadow-sm"><button type="submit" class="w-12 h-12 rounded-xl bg-zen-primary text-white flex items-center justify-center hover:bg-sky-600 transition shadow-md">➤</button></form>
+        </div>
+    </div>
+
+    <!-- Créditos Modal -->
+    <div id="credits-overlay" style="display: none;" class="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[60] flex items-center justify-center p-4 animate-enter">
+        <div class="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl max-w-md w-full p-8 relative border border-white/50">
+            <button onclick="toggleCredits(false)" class="absolute top-5 right-5 text-slate-400 hover:text-red-500 text-xl font-bold transition">✕</button>
+            <div class="text-center mb-8"><div class="text-5xl mb-2 drop-shadow-md animate-float">🧠</div><h2 class="text-3xl font-heading font-extrabold text-zen-dark tracking-tight">Mente<span class="text-zen-primary">+</span>Activa</h2><p class="text-sm text-slate-500 font-medium mt-1">Escuela: <span class="font-bold text-zen-primary">CETIS 116</span></p></div>
+            <div class="space-y-6">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-blue-50"><h3 class="text-xs font-bold text-zen-primary uppercase tracking-widest mb-3 border-b border-blue-100 pb-2">Desarrolladores</h3><ul class="space-y-2 text-sm text-slate-600 font-semibold"><li class="flex items-center gap-3"><span class="w-2 h-2 bg-blue-400 rounded-full"></span> Alan Alberto Hernández Carrasco</li></li><li class="flex items-center gap-3"><span class="w-2 h-2 bg-cyan-400 rounded-full"></span> Félix Maximino Gordillo Martínez</li><li class="flex items-center gap-3"><span class="w-2 h-2 bg-teal-400 rounded-full"></span> Axel Said Pérez López</li><li class="flex items-center gap-3"><span class="w-2 h-2 bg-emerald-400 rounded-full"></span> José Azael Jaimes Nogueda</li></ul></div>
+                <div class="bg-indigo-50 p-4 rounded-2xl shadow-inner border border-indigo-100"><h3 class="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-3 border-b border-indigo-200 pb-2">Asesores</h3><ul class="space-y-2 text-sm text-slate-700 font-bold"><li class="flex items-center gap-2">🎓 Antonio Rodríguez Vásquez</li><li class="flex items-center gap-2">🎓 Carolina López Martínez</li></ul></div>
+            </div>
+            <div class="mt-8 pt-4 border-t border-slate-100 text-center text-xs text-slate-400 font-bold">© 2025 CETIS 116</div>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE ---
+        const sections = ['welcome', 'register', 'quiz', 'results', 'games'];
+        let userData = {};
+        let answers = {};
+        let level = 'low';
+        let audioCtx = null;
+
+        // --- DATA (TITULOS EN ESPAÑOL + CONTENIDO PROFESIONAL) ---
+        const content = {
+            questions: {
+                stress: [
+                    "1. ¿Le resulta difícil desconectar y relajarse después de terminar sus obligaciones diarias?",
+                    "2. ¿Siente que pierde la paciencia o se irrita rápidamente ante pequeños problemas?",
+                    "3. ¿Nota tensión física frecuente, como dolor de cuello o espalda, sin haber hecho ejercicio?"
+                ],
+                anxiety: [
+                    "4. ¿Tiene pensamientos repetitivos de preocupación sobre cosas que aún no han pasado?",
+                    "5. ¿Siente malestar físico como nervios en el estómago o corazón acelerado bajo presión?",
+                    "6. ¿Evita participar en actividades sociales o académicas por miedo a equivocarse?"
+                ],
+                sleep: [
+                    "7. ¿Tarda más de 30 minutos en quedarse dormido regularmente?",
+                    "8. ¿Se siente con sueño o baja energía durante el día, afectando su rendimiento?",
+                    "9. ¿El uso del celular o pantallas antes de dormir le impide descansar las horas necesarias?"
+                ]
+            },
+            resources: {
+                high: {
+                    summary: "Indicador ALTO. Se recomienda priorizar el descanso y la gestión emocional.",
+                    tips: [
+                        "<b>⛔ Matriz de Eisenhower (Priorización):</b> Si se siente saturado, clasifique lo que es 'Urgente' e 'Importante'. Haga solo lo esencial y posponga lo demás.",
+                        "<b>📱 Higiene del Sueño Estricta:</b> La luz de las pantallas impide la producción de melatonina. Apáguelas 1 hora antes de dormir.",
+                        "<b>📝 Escritura de Desahogo:</b> Escriba sus preocupaciones en un papel antes de dormir para 'sacarlas' de su mente y reducir la rumiación."
+                    ],
+                    meditation: [
+                        "<b>🧘 Relajación Muscular Progresiva:</b> Recuéstese y tense/relaje cada grupo muscular (pies, piernas, abdomen) para identificar y soltar la tensión física.",
+                        "<b>🏔️ Visualización de Estabilidad:</b> Imagine que es una montaña firme. Los pensamientos son nubes que pasan, pero usted permanece tranquilo."
+                    ],
+                    exercise: [
+                        "<b>🚶 Caminata Atenta:</b> Camine 10 minutos concentrándose únicamente en la sensación de sus pies tocando el suelo. Sin música.",
+                        "<b>🙆 Estiramiento Cervical:</b> Mueva suavemente la oreja derecha al hombro derecho. Mantenga 15 segundos respirando. Cambie de lado."
+                    ]
+                },
+                moderate: {
+                    summary: "Indicador MODERADO. Es un buen momento para aplicar estrategias preventivas.",
+                    tips: [
+                        "<b>🍅 Técnica de Enfoque (Pomodoro):</b> Trabaje 25 minutos y descanse 5 minutos reales (levántese, camine, no use el celular).",
+                        "<b>💧 Hidratación Cerebral:</b> La deshidratación leve causa fatiga y falta de atención. Beba agua cuando se sienta bloqueado."
+                    ],
+                    meditation: [
+                        "<b>🟩 Respiración Cuadrada (4-4-4-4):</b> Inhale en 4s, Retenga el aire 4s, Exhale en 4s y Espere sin aire 4s. Esto regula el sistema nervioso.",
+                        "<b>🏖️ Refugio Mental:</b> Cierre los ojos e imagine con detalle un lugar donde se sienta completamente seguro y en paz (playa, bosque)."
+                    ],
+                    exercise: [
+                        "<b>🤸 Pausas Activas:</b> Cada hora, póngase de pie y sacuda los brazos y piernas vigorosamente por 1 minuto para reactivar la circulación.",
+                        "<b>🧘 Postura del Niño (Balasana):</b> Arrodíllese y baje la frente al suelo. Relaje la espalda y respire profundo."
+                    ]
+                },
+                low: {
+                    summary: "Indicador BAJO (Saludable). Mantiene un buen equilibrio, continúe así.",
+                    tips: [
+                        "<b>✨ Entorno Zen:</b> Mantener su espacio de estudio limpio y ordenado reduce las distracciones visuales y mejora la claridad mental.",
+                        "<b>🎨 Tiempo Recreativo Análogo:</b> Dedique 20 minutos al día a un hobby sin pantallas (dibujar, leer, tocar un instrumento)."
+                    ],
+                    meditation: [
+                        "<b>🙏 Práctica de Gratitud:</b> Al final del día, identifique tres cosas específicas por las que se sienta agradecido.",
+                        "<b>🤫 Escucha Consciente:</b> Dedique un minuto a escuchar todos los sonidos de su entorno sin juzgarlos, solo observándolos."
+                    ],
+                    exercise: [
+                        "<b>💃 Movimiento Libre:</b> Ponga su canción favorita y muévase como quiera. Es la forma más rápida de liberar endorfinas.",
+                        "<b>🏃 Rutina Habitual:</b> Siga con su actividad física regular. La consistencia es clave para la salud mental a largo plazo."
+                    ]
+                }
+            }
+        };
+
+        // Titulos de Categoría en Español
+        const categoryTitles = {
+            stress: "ESTRÉS",
+            anxiety: "ANSIEDAD",
+            sleep: "SUEÑO"
+        };
+
+        // --- NAVIGATION ---
+        function navTo(id) {
+            sections.forEach(s => {
+                const el = document.getElementById(`sec-${s}`);
+                if(s === id) { el.classList.remove('hidden-section'); el.classList.add('animate-enter'); }
+                else { el.classList.add('hidden-section'); el.classList.remove('animate-enter'); }
+            });
+            window.scrollTo({top:0, behavior:'smooth'});
+            
+            const btn = document.getElementById('btn-chat-float');
+            if(id === 'games' || id === 'results') { btn.classList.remove('hidden'); if(id === 'games') initAllGames(); }
+            else { btn.classList.add('hidden'); }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            userData = { name: document.getElementById('inp-name').value };
+            renderQuiz(); navTo('quiz');
+        }
+
+        function toggleCredits(show) { document.getElementById('credits-overlay').style.display = show ? 'flex' : 'none'; }
+
+        // --- QUIZ ---
+        function renderQuiz() {
+            const c = document.getElementById('quiz-content');
+            let html = '';
+            for(let cat in content.questions) {
+                // Usamos el objeto de traducción para el título
+                html += `<div class="bg-white p-6 rounded-2xl border border-blue-50 shadow-sm mb-6"><h3 class="text-xs font-bold text-sky-600 uppercase tracking-widest mb-4">${categoryTitles[cat]}</h3>`;
+                content.questions[cat].forEach((q, i) => {
+                    html += `<div class="mb-4"><p class="font-bold text-slate-700 mb-2">${q}</p><div class="flex gap-2">${[1,2,3,4,5].map(v => `<button type="button" class="quiz-card flex-1 py-3 text-center" onclick="pickAns(this, '${cat}_${i}', ${v}, '${cat}')">${v}</button>`).join('')}</div></div>`;
+                });
+                html += `</div>`;
+            }
+            c.innerHTML = html;
+        }
+
+        function pickAns(btn, id, val, cat) {
+            answers[id] = { val, cat };
+            btn.parentNode.querySelectorAll('button').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            if(Object.keys(answers).length === 9) document.getElementById('quiz-alert').classList.add('hidden');
+        }
+
+        function finishQuiz(e) {
+            e.preventDefault();
+            if(Object.keys(answers).length < 9) { 
+                alert("Por favor, responde todas las preguntas para generar tu diagnóstico.");
+                return; 
+            }
+            
+            let scores = { stress: 0, anxiety: 0, sleep: 0 };
+            for(let k in answers) scores[answers[k].cat] += answers[k].val;
+
+            ['stress', 'anxiety', 'sleep'].forEach(k => {
+                let pct = (scores[k] / 15) * 100;
+                document.getElementById(`txt-${k}`).innerText = `${Math.round(pct)}%`;
+                const bar = document.getElementById(`bar-${k}`);
+                bar.style.width = `${pct}%`;
+                bar.className = `h-full rounded-full transition-all duration-1000 shadow-sm ${pct<40?'bg-sky-400':pct<70?'bg-blue-400':'bg-indigo-400'}`;
+            });
+
+            let total = scores.stress + scores.anxiety + scores.sleep;
+            level = total > 30 ? 'high' : total > 20 ? 'moderate' : 'low';
+            
+            const r = content.resources[level];
+            const sum = document.getElementById('res-summary');
+            sum.innerHTML = r.summary;
+            sum.className = `p-8 rounded-3xl text-center text-xl font-bold mb-12 border shadow-lg ${level==='high'?'bg-red-50 text-red-600 border-red-100':level==='moderate'?'bg-orange-50 text-orange-600 border-orange-100':'bg-sky-50 text-sky-700 border-sky-100'}`;
+
+            switchTab('tips'); navTo('results');
+        }
+
+        function switchTab(type) {
+            document.querySelectorAll('.tab-trigger').forEach(b => b.className = 'tab-trigger flex-1 py-3 rounded-xl text-sm font-extrabold transition text-slate-400 hover:text-slate-600');
+            const idx = type === 'tips' ? 0 : type === 'meditation' ? 1 : 2;
+            document.querySelectorAll('.tab-trigger')[idx].className = 'tab-trigger flex-1 py-3 rounded-xl text-sm font-bold transition bg-white text-zen-primary shadow-md';
+
+            document.getElementById('tab-content').innerHTML = content.resources[level][type].map(t => 
+                `<div class="flex items-start p-5 bg-white rounded-2xl border border-blue-50 shadow-sm hover:shadow-md transition animate-enter"><span class="text-sky-500 mr-4 text-xl">✦</span><span class="text-slate-700 leading-relaxed">${t}</span></div>`
+            ).join('');
+        }
+
+        // --- AUDIO ---
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); const now = audioCtx.currentTime;
+            if (type === 'pop') {
+                osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
+            } else if (type === 'breath') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(150, now); gain.gain.setValueAtTime(0, now); 
+                gain.gain.linearRampToValueAtTime(0.05, now + 2); gain.gain.linearRampToValueAtTime(0, now + 4);
+                osc.start(now); osc.stop(now + 4);
+            } else if (type === 'match') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(440, now); osc.frequency.setValueAtTime(880, now + 0.2);
+                gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            }
+            osc.connect(gain); gain.connect(audioCtx.destination);
+        }
+
+        // --- GAMES ---
+        function initAllGames() { initPop(); initMemory(); }
+        function initPop() {
+            const g = document.getElementById('grid-pop'); g.innerHTML = '';
+            for(let i=0; i<15; i++) {
+                const b = document.createElement('div'); b.className = 'pop-bubble';
+                b.onclick = function() { if(!this.classList.contains('popped')) { this.classList.add('popped'); playSound('pop'); } };
+                g.appendChild(b);
+            }
+        }
+
+        let breathT, isBreathing = false;
+        function toggleBreath() {
+            const v = document.getElementById('viz-breath'); const b = document.getElementById('btn-breath');
+            if(isBreathing) {
+                clearInterval(breathT); v.className = 'breath-circle mb-8 shadow-lg'; v.innerText = "LISTO"; b.innerText = "INICIAR"; b.className = "px-10 py-3 rounded-full bg-sky-500 text-white font-bold hover:bg-sky-600 transition shadow-lg"; isBreathing = false;
+            } else {
+                isBreathing = true; let inhale = true;
+                v.innerText = "INHALA"; b.innerText = "PAUSAR"; b.className = "px-10 py-3 rounded-full bg-slate-400 text-white font-bold";
+                v.classList.add('anim-breathe'); playSound('breath');
+                breathT = setInterval(() => {
+                    inhale = !inhale;
+                    if(inhale) { v.innerText = "INHALA"; playSound('breath'); } 
+                    else { v.innerText = "EXHALA"; }
+                }, 4000);
+            }
+        }
+
+        // --- MEMORY GAME ARREGLADO ---
+        const icons = ['🌿','☀️','💧','🌸','🦋','🌙'];
+        let lockBoard = false;
+        let hasFlippedCard = false;
+        let firstCard, secondCard;
+
+        function initMemory() {
+            const g = document.getElementById('grid-memory'); 
+            g.innerHTML = ''; 
+            // Reiniciar estado
+            hasFlippedCard = false; lockBoard = false; firstCard = null; secondCard = null;
+
+            const deck = [...icons.slice(0, 6), ...icons.slice(0, 6)].sort(() => 0.5 - Math.random());
+            
+            deck.forEach(icon => {
+                const card = document.createElement('div'); card.className = 'memory-card';
+                card.dataset.icon = icon;
+
+                const inner = document.createElement('div'); inner.className = 'memory-inner';
+                
+                const front = document.createElement('div'); front.className = 'front-face'; front.innerText = "?"; 
+                const back = document.createElement('div'); back.className = 'back-face'; back.innerText = icon;
+
+                inner.appendChild(front);
+                inner.appendChild(back);
+                card.appendChild(inner);
+
+                card.addEventListener('click', function() {
+                    flipCard(card);
+                });
+                g.appendChild(card);
+            });
+        }
+
+        function flipCard(card) {
+            if (lockBoard) return;
+            if (card === firstCard) return;
+
+            card.classList.add('flip');
+            playSound('pop');
+
+            if (!hasFlippedCard) {
+                hasFlippedCard = true;
+                firstCard = card;
+                return;
+            }
+
+            secondCard = card;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            let isMatch = firstCard.dataset.icon === secondCard.dataset.icon;
+            isMatch ? disableCards() : unflipCards();
+        }
+
+        function disableCards() {
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+            resetBoard();
+        }
+
+        function unflipCards() {
+            lockBoard = true;
+            setTimeout(() => {
+                firstCard.classList.remove('flip');
+                secondCard.classList.remove('flip');
+                resetBoard();
+            }, 1000);
+        }
+
+        function resetBoard() {
+            [hasFlippedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
+
+        // --- CHAT ---
+        function toggleChat(show) {
+            const el = document.getElementById('chat-overlay'); el.style.display = show ? 'flex' : 'none';
+            if(show) addMsg(`Hola ${userData.name || 'Amigo'}. Soy Aura. ¿Cómo te sientes hoy?`, false);
+        }
+        function addMsg(txt, isUser) {
+            const c = document.getElementById('chat-history');
+            const div = document.createElement('div'); div.className = `flex w-full ${isUser?'justify-end':'justify-start'}`;
+            div.innerHTML = `<div class="chat-bubble ${isUser?'chat-user':'chat-bot'}">${txt}</div>`;
+            c.appendChild(div); c.scrollTop = c.scrollHeight;
+        }
+        function sendMsg(e) {
+            e.preventDefault();
+            const inp = document.getElementById('inp-msg'); const txt = inp.value.trim(); if(!txt) return;
+            addMsg(txt, true); inp.value = ''; document.getElementById('chat-typing').classList.remove('hidden');
+            setTimeout(() => {
+                let res = "Te entiendo. ¿Podrías contarme más?";
+                const t = txt.toLowerCase();
+                if(t.includes('triste')) res = "Lamento que te sientas así. Recuerda que esto pasará. Prueba los ejercicios de respiración.";
+                if(t.includes('estres')) res = "El estrés es difícil. Intenta la técnica Pomodoro que te sugerí en los resultados.";
+                if(t.includes('juego')) res = "¡Buena idea! Jugar ayuda a desconectar.";
+                if(t.includes('hola')) res = `Hola ${userData.name || ''}. Estoy aquí para ti.`;
+                document.getElementById('chat-typing').classList.add('hidden'); addMsg(res, false);
+            }, 1500);
+        }
+
+        // Inicio
+        window.onload = initPopGame;
+    </script>
+</body>
+</html>
